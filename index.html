@@ -1,1 +1,593 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAKA Secondary School - Finance Dashboard</title>
+    <!-- Google Fonts iyo Icons -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cloudflare.com">
+    
+    <style>
+        /* ==========================================================================
+           1. GLOBAL VARIABLES & RESET (MUUQAALKA GUUD)
+           ========================================================================== */
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --sidebar-bg: #0f172a;
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ==========================================================================
+           2. SIDEBAR STYLE (SEALKA BIDIX)
+           ========================================================================== */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: #ffffff;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .sidebar-item a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sidebar-item.active a, 
+        .sidebar-item a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        /* ==========================================================================
+           3. MAIN CONTENT LAYOUT & HEADER (BOGGA DHEXE)
+           ========================================================================== */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            margin-left: 260px;
+            overflow-y: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .date-badge {
+            background-color: var(--surface);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            font-weight: 500;
+            color: var(--text-muted);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* ==========================================================================
+           4. DASHBOARD WIDGETS (KAADHADHKA STATS-KA)
+           ========================================================================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background-color: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-info h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-info p {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .bg-blue { background-color: #eff6ff; color: #3b82f6; }
+        .bg-purple { background-color: #f5f3ff; color: #8b5cf6; }
+
+        /* ==========================================================================
+           5. PANELS, TABS & SECTIONS (DAAQADAHA)
+           ========================================================================== */
+        .panel-section {
+            background-color: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: none;
+        }
+
+        .panel-section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .class-date {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 600;
+            background: #e0e7ff;
+            padding: 0.35rem 0.85rem;
+            border-radius: 0.375rem;
+        }
+
+        .tabs-header {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ==========================================================================
+           6. TABLES STYLE (QAABAYNTA MIISASKA XOGTA)
+           ========================================================================== */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            padding: 0.85rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* ==========================================================================
+           7. BADGES & BUTTONS (CALAAMADAHA PAID/UNPAID IYO BADHAMADA)
+           ========================================================================== */
+        .badge {
+            padding: 0.35rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .badge.paid {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge.unpaid {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-status, .btn-toggle {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #334155;
+            transition: all 0.2s ease;
+        }
+
+        .btn-status:hover, .btn-toggle:hover {
+            background-color: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+        <!-- YAKA DASHBOARD HEADER & STATS -->
+        <header>
+            <div>
+                <h1 id="page-title">Dashboard-ka Guud</h1>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">Nidaamka maamulka maaliyadda YAKA Secondary School.</p>
+            </div>
+            <div class="date-badge" id="currentDate"></div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Wadarta Ardayda</h3>
+                    <p id="totalStudents">0</p>
+                </div>
+                <div class="stat-icon bg-blue">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Wadarta Waalidka</h3>
+                    <p id="totalParents">0</p>
+                </div>
+                <div class="stat-icon bg-purple">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. PANEL: DASHBOARD GUUD -->
+        <div id="panel-dashboard" class="panel-section active">
+            <div class="section-title" style="margin-bottom: 1rem;">Ku soo dhawaada Nidaamka Maaliyadda Dugsiga</div>
+            <p style="color: var(--text-muted);">Fadlan menu-ga bidix ka dooro qaybta aad rabto inaad maamusho sida Fasallada ama Daaqada Waalidka.</p>
+        </div>
+
+        <!-- 2. PANEL: MAAMULKA FASALLADA -->
+        <div id="panel-classes" class="panel-section">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-door-open"></i> Xogta Ardayda Fasalada</div>
+                <div class="class-date" id="autoClassDate"></div>
+            </div>
+            
+            <div class="tabs-header" id="tabsHeader"></div>
+            <div id="tabsContent"></div>
+        </div>
+
+        <!-- 3. PANEL: DAAQADA WAALIDKA -->
+        <div id="panel-parents" class="panel-section">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-users"></i> Daaqada Maamulka Waalidka</div>
+                <div class="class-date" id="autoParentDate"></div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>S/N</th>
+                            <th>Name (Waalidka)</th>
+                            <th>Telephone</th>
+                            <th>No of Students</th>
+                            <th>Pay Fee</th>
+                            <th>Total Amount</th>
+                            <th>Checked (Paid/No Paid)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="parentsTableBody">
+                        <!-- Xogta waalidiinta halkan ayay ku shubmi doontaa -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div> <!-- Dhamaadka main-content -->
+
+    <script>
+        // XOGTA ARDAYDA (Halkan ku beddel xogta dhabta ah)
+        const schoolData = {
+            "Form 1": [
+                { id: "F1-001", name: "Ardayga Koowaad ee F1", fee: 120, status: "Paid" }
+            ],
+            "Form 2": [
+                { id: "F2-001", name: "Ardayga Koowaad ee F2", fee: 130, status: "Unpaid" }
+            ],
+            "Form 3": [
+                { id: "F3-001", name: "Ardayga Koowaad ee F3", fee: 140, status: "Paid" }
+            ],
+            "Form 4": [
+                { id: "F4-001", name: "Ardayga Koowaad ee F4", fee: 150, status: "Unpaid" }
+            ]
+        };
+
+        // XOGTA WAALIDKA (Halkan ku beddel xogta dhabta ah)
+        const parentsData = [
+            { sn: 1, name: "Maxamed Cali Cilmi", phone: "634444444", noOfStudents: 2, payFee: 120, totalAmount: 240, checked: "Paid" },
+            { sn: 2, name: "Cumar Xasan Warsame", phone: "659999999", noOfStudents: 1, payFee: 150, totalAmount: 150, checked: "No Paid" }
+        ];
+
+        // Kala beddelidda Daaqadaha Waaweyn ee Shaashadda
+        function showPanel(panelName) {
+            document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById(`panel-${panelName}`).classList.add('active');
+            document.getElementById(`menu-${panelName}`).classList.add('active');
+            
+            const titles = { 
+                'dashboard': 'Dashboard-ka Guud', 
+                'classes': 'Maamulka Fasallada', 
+                'parents': 'Daaqada Maamulka Waalidka' 
+            };
+            document.getElementById('page-title').innerText = titles[panelName];
+        }
+
+        // Xisaabinta Dashboard Stats
+        function updateDashboardStats() {
+            let totalStu = 0;
+            Object.values(schoolData).forEach(classStudents => { totalStu += classStudents.length; });
+            document.getElementById("totalStudents").innerText = totalStu;
+            document.getElementById("totalParents").innerText = parentsData.length;
+        }
+
+        // Bedelida xaalada lacag bixinta ardayga (Paid / Unpaid)
+        function toggleStatus(className, studentId) {
+            const student = schoolData[className].find(s => s.id === studentId);
+            if (student) {
+                student.status = student.status === "Paid" ? "Unpaid" : "Paid";
+                renderTabsContent();
+            }
+        }
+
+        // Bedelida xaalada lacag bixinta waalidka (Paid / No Paid)
+        function toggleParentStatus(sn) {
+            const parent = parentsData.find(p => p.sn === sn);
+            if (parent) {
+                parent.checked = parent.checked === "Paid" ? "No Paid" : "Paid";
+                renderParentsTable();
+            }
+        }
+
+        // Samaynta badhamada fasalada (Tabs)
+        function renderTabsHeader() {
+            const tabsHeader = document.getElementById("tabsHeader");
+            tabsHeader.innerHTML = "";
+            Object.keys(schoolData).forEach((className, index) => {
+                const btn = document.createElement("button");
+                btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+                btn.innerText = className;
+                btn.onclick = () => switchTab(className, btn);
+                tabsHeader.appendChild(btn);
+            });
+        }
+
+        function switchTab(className, clickedBtn) {
+            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+            clickedBtn.classList.add("active");
+            document.getElementById(`tab-${className.replace(' ', '-')}`).classList.add("active");
+        }
+
+        // Soo saarista ardayda fasal walba ku jirta
+        function renderTabsContent() {
+            const tabsContentContainer = document.getElementById("tabsContent");
+            const activeTabBtn = document.querySelector(".tab-btn.active");
+            const activeClassName = activeTabBtn ? activeTabBtn.innerText : Object.keys(schoolData)[0];
+
+            tabsContentContainer.innerHTML = "";
+
+            Object.keys(schoolData).forEach(className => {
+                const isActive = className === activeClassName;
+                let tableRows = "";
+                
+                schoolData[className].forEach(student => {
+                    const statusClass = student.status === "Paid" ? "paid" : "unpaid";
+                    const statusText = student.status === "Paid" ? "Bixiyay" : "Hadhay";
+                    const btnText = student.status === "Paid" ? "Ka dhig Hadhay" : "Ka dhig Bixiyay";
+
+                    tableRows += `
+                        <tr>
+                            <td><strong>${student.id}</strong></td>
+                            <td>${student.name}</td>
+                            <td>$${student.fee}</td>
+                            <td><span class="badge ${statusClass}">${statusText}</span></td>
+                            <td><button class="btn-status" onclick="toggleStatus('${className}', '${student.id}')">${btnText}</button></td>
+                        </tr>
+                    `;
+                });
+
+                const tabContent = document.createElement("div");
+                tabContent.id = `tab-${className.replace(' ', '-')}`;
+                tabContent.className = `tab-content ${isActive ? 'active' : ''}`;
+                tabContent.innerHTML = `
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID Ardayga</th>
+                                    <th>Magaca Ardayga</th>
+                                    <th>Khidmada (Fee)</th>
+                                    <th>Xaaladda</th>
+                                    <th>Waxqabad (Action)</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tableRows}</tbody>
+                        </table>
+                    </div>
+                `;
+                tabsContentContainer.appendChild(tabContent);
+            });
+        }
+
+            // Soo saarista Miiska Waalidka (Parents Window)
+        function renderParentsTable() {
+            const tbody = document.getElementById("parentsTableBody");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            parentsData.forEach(p => {
+                const isPaid = p.checked === "Paid";
+                const checkedClass = isPaid ? "paid" : "unpaid";
+                const toggleLabel = isPaid ? "Ka dhig No Paid" : "Ka dhig Paid";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.sn}</strong></td>
+                        <td><strong>${p.name}</strong></td>
+                        <td>${p.phone}</td>
+                        <td>${p.noOfStudents}</td>
+                        <td>$${p.payFee}</td>
+                        <td><strong>$${p.totalAmount}</strong></td>
+                        <td><span class="badge ${checkedClass}">${p.checked}</span></td>
+                        <td><button class="btn-toggle" onclick="toggleParentStatus(${p.sn})">${toggleLabel}</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Marka uu boggu kaco (Initialization)
+        document.addEventListener("DOMContentLoaded", () => {
+            const maanta = new Date().toLocaleDateString('so-SO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById("currentDate").innerText = maanta;
+            document.getElementById("autoClassDate").innerText = `Taariikhda: ${maanta}`;
+            document.getElementById("autoParentDate").innerText = `Taariikhda: ${maanta}`;
+
+            renderTabsHeader();
+            renderTabsContent();
+            renderParentsTable();
+            updateDashboardStats();
+        });
+    </script>
+</body>
+</html>
