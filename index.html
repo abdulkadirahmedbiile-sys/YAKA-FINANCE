@@ -5,7 +5,7 @@
 <title>Maaliyadda Dugsiga</title>
 <style>
   body { font-family: sans-serif; background: #f1f5f9; color: #0a192f; margin: 0; }
-  .page { display: none; padding: 20px; max-width: 1000px; margin: auto; }
+  .page { display: none; padding: 20px; max-width: 1050px; margin: auto; }
   .active { display: block; }
   #p1 { background: #0a192f; max-width: 100%; height: 100vh; justify-content: center; align-items: center; }
   #p1.active { display: flex; }
@@ -20,7 +20,9 @@
   td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
   td input { margin: 0; border: none; background: #f8fafc; }
   .paid { background: #16a34a; } .unpaid { background: #dc2626; }
-  .bar { display: flex; gap: 10px; align-items: center; background: #fff; padding: 15px; border-radius: 6px; }
+  .bar { display: flex; gap: 10px; align-items: center; background: #fff; padding: 15px; border-radius: 6px; flex-wrap: wrap; }
+  .stats { display: flex; gap: 15px; margin-top: 15px; }
+  .stat-box { flex: 1; background: #fff; padding: 15px; border-radius: 6px; border-left: 5px solid #0a192f; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -40,7 +42,10 @@
 <div id="p2" class="page">
   <div class="bar" style="justify-content:space-between;">
     <h2>Fasallada Dugsiga</h2>
-    <button onclick="show('p1')">Ka Bax</button>
+    <div>
+      <button style="background:#1d4ed8; margin-right:8px;" onclick="openArchive()">📊 Kaydka Guud (Search)</button>
+      <button onclick="show('p1')">Ka Bax</button>
+    </div>
   </div>
   <h3>Secondary ($25)</h3>
   <div class="grid">
@@ -58,7 +63,7 @@
   </div>
 </div>
 
-<!-- PAGE 3: XOGTA FASALKA -->
+<!-- PAGE 3: XOGTA FASALKA & XISAABTA -->
 <div id="p3" class="page">
   <div class="bar">
     <button onclick="show('p2')">← Dib</button>
@@ -71,14 +76,43 @@
     <input id="q" onkeyup="draw()" placeholder="Raadi Magac ama ID..." style="width:200px;">
     <button onclick="add()">+ Saf</button>
   </div>
+
+  <!-- XISAABTA AUTOMATIC-GA AH -->
+  <div class="stats">
+    <div class="stat-box" style="border-color:#16a34a; color:#16a34a;">La Bixiyay (Paid): <span id="tot-paid">$0</span></div>
+    <div class="stat-box" style="border-color:#dc2626; color:#dc2626;">Dhiman (Unpaid): <span id="tot-unpaid">$0</span></div>
+    <div class="stat-box">Wadarta Fasalka: <span id="tot-all">$0</span></div>
+  </div>
+
   <table>
     <thead><tr><th>ID NO</th><th>MAGACA ARDAYGA</th><th>MAGACA WAALIDKA</th><th>BISHA</th><th>FEE</th><th>XAALADDA</th><th>×</th></tr></thead>
     <tbody id="tb"></tbody>
   </table>
 </div>
 
+<!-- PAGE 4: KAYDKA GUUD (GLOBAL ARCHIVE SEARCH) -->
+<div id="p4" class="page">
+  <div class="bar">
+    <button onclick="show('p2')">← Dib</button>
+    <h3 style="margin:0; flex:1;">📊 Kaydka Guud ee Lacagaha (Waligeed)</h3>
+    <select id="arc-m" onchange="drawArchive()" style="width:150px;">
+      <option value="ALL">Dhammaan Bilaha</option>
+      <option>January</option><option>February</option><option>March</option><option>April</option>
+      <option>May</option><option>June</option><option>July</option><option>August</option>
+      <option>September</option><option>October</option><option>November</option><option>December</option>
+    </select>
+    <input id="arc-q" onkeyup="drawArchive()" placeholder="Raadi Magac, ID, ama Fasal..." style="width:230px;">
+  </div>
+  <table>
+    <thead><tr><th>FASALKA</th><th>ID NO</th><th>MAGACA ARDAYGA</th><th>WAALIDKA</th><th>BISHA</th><th>LACAGTA</th><th>XAALADDA</th></tr></thead>
+    <tbody id="arc-tb"></tbody>
+  </table>
+</div>
+
 <script>
   let db = JSON.parse(localStorage.getItem('s_db')) || {}, c = '', f = 0;
+  const fees = {'Form 4':25,'Form 3':25,'Form 2':25,'Form 1':25,'Grade 8':15,'Grade 7':15,'Grade 6':15,'Grade 5':15};
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const show = id => { document.querySelectorAll('.page').forEach(e=>e.classList.remove('active')); document.getElementById(id).classList.add('active'); };
   const save = () => localStorage.setItem('s_db', JSON.stringify(db));
 
@@ -99,21 +133,59 @@
   function draw() {
     const mon = m.value, qry = q.value.toLowerCase();
     tb.innerHTML = '';
+    let paidSum = 0, unpaidSum = 0;
+
     db[c].forEach((s, i) => {
-      if (qry && !s.name.toLowerCase().includes(qry) && !s.id.toLowerCase().includes(qry)) return;
       const ok = s.pay[mon];
+      if (s.name.trim() !== '') {
+        if (ok) paidSum += f; else unpaidSum += f;
+      }
+      if (qry && !s.name.toLowerCase().includes(qry) && !s.id.toLowerCase().includes(qry)) return;
       tb.innerHTML += `<tr>
         <td><input value="${s.id}" onchange="db['${c}'][${i}].id=this.value;save()"></td>
-        <td><input value="${s.name}" placeholder="Magaca..." onchange="db['${c}'][${i}].name=this.value;save()"></td>
+        <td><input value="${s.name}" placeholder="Magaca..." onchange="db['${c}'][${i}].name=this.value;save();draw()"></td>
         <td><input value="${s.parent}" placeholder="Waalidka..." onchange="db['${c}'][${i}].parent=this.value;save()"></td>
         <td>${mon}</td><td>$${f}</td>
         <td><button class="${ok?'paid':'unpaid'}" onclick="db['${c}'][${i}].pay['${mon}']=!db['${c}'][${i}].pay['${mon}'];save();draw()">${ok?'Bixiyay':'Ma Bixin'}</button></td>
         <td><button style="background:none;color:red;" onclick="db['${c}'].splice(${i},1);save();draw()">×</button></td>
       </tr>`;
     });
+
+    document.getElementById('tot-paid').innerText = `$${paidSum}`;
+    document.getElementById('tot-unpaid').innerText = `$${unpaidSum}`;
+    document.getElementById('tot-all').innerText = `$${paidSum + unpaidSum}`;
   }
 
   function add() { db[c].push({id:`ID-00${db[c].length+1}`, name:'', parent:'', pay:{}}); save(); draw(); }
+
+  // SHAQADA KAYDKA GUUD (ARCHIVE)
+  function openArchive() { show('p4'); drawArchive(); }
+
+  function drawArchive() {
+    const selM = document.getElementById('arc-m').value;
+    const qry = document.getElementById('arc-q').value.toLowerCase();
+    const atb = document.getElementById('arc-tb');
+    atb.innerHTML = '';
+
+    Object.keys(db).forEach(cls => {
+      db[cls].forEach(s => {
+        if (!s.name.trim()) return;
+        const targetMonths = selM === 'ALL' ? months : [selM];
+        targetMonths.forEach(mon => {
+          if (s.pay[mon] !== undefined) {
+            const text = `${cls} ${s.id} ${s.name} ${s.parent}`.toLowerCase();
+            if (qry && !text.includes(qry)) return;
+            const ok = s.pay[mon];
+            atb.innerHTML += `<tr>
+              <td><strong>${cls}</strong></td><td>${s.id}</td><td>${s.name}</td><td>${s.parent}</td>
+              <td>${mon}</td><td>$${fees[cls]}</td>
+              <td style="color:${ok?'#16a34a':'#dc2626'}; font-weight:bold;">${ok?'✓ Bixiyay':'✗ Ma Bixin'}</td>
+            </tr>`;
+          }
+        });
+      });
+    });
+  }
 </script>
 </body>
 </html>
