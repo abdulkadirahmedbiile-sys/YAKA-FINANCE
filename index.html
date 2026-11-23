@@ -10,8 +10,8 @@
   #p1 { background: #0a192f; max-width: 100%; height: 100vh; justify-content: center; align-items: center; }
   #p1.active { display: flex; }
   .box { background: #fff; padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
-  input, select { width: 100%; padding: 7px; margin: 5px 0; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
-  button { background: #0a192f; color: #fff; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+  input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+  button { background: #0a192f; color: #fff; border: none; padding: 9px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
   .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 15px 0; }
   .card { background: #fff; padding: 15px; text-align: center; border-top: 4px solid #0a192f; border-radius: 6px; cursor: pointer; }
   .card:hover { background: #0a192f; color: #fff; }
@@ -29,8 +29,9 @@
 <div id="p1" class="page active">
   <div class="box">
     <h3>Maaliyadda Dugsiga</h3>
-    <input id="u" placeholder="Username (admin)"><input id="p" type="password" placeholder="Password (1234)">
-    <button style="width:100%; margin-top:8px;" onclick="u.value=='admin'&&p.value=='1234'?show('p2'):err.style.display='block'">Gal</button>
+    <input id="user" placeholder="Username (admin)">
+    <input id="pass" type="password" placeholder="Password (1234)">
+    <button style="width:100%; margin-top:8px;" onclick="login()">Gal</button>
     <p id="err" style="color:red; display:none; font-size:13px;">Waa khalad!</p>
   </div>
 </div>
@@ -80,18 +81,29 @@
   let db = JSON.parse(localStorage.getItem('s_db')) || {}, c = '', f = 0;
   const fees = {'Form 4':25,'Form 3':25,'Form 2':25,'Form 1':25,'Grade 8':15,'Grade 7':15,'Grade 6':15,'Grade 5':15};
   const mons = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  mons.forEach(x => { m.innerHTML += `<option>${x}</option>`; am.innerHTML += `<option>${x}</option>`; });
-  const show = id => { document.querySelectorAll('.page').forEach(e=>e.classList.remove('active')); document.getElementById(id).classList.add('active'); };
-  const save = () => localStorage.setItem('s_db', JSON.stringify(db));
+  mons.forEach(x => { document.getElementById('m').innerHTML += `<option>${x}</option>`; document.getElementById('am').innerHTML += `<option>${x}</option>`; });
+  
+  function show(id) { document.querySelectorAll('.page').forEach(e=>e.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+  function save() { localStorage.setItem('s_db', JSON.stringify(db)); }
+  
+  function login() {
+    if (document.getElementById('user').value.trim() === 'admin' && document.getElementById('pass').value.trim() === '1234') {
+      document.getElementById('err').style.display = 'none';
+      show('p2');
+    } else {
+      document.getElementById('err').style.display = 'block';
+    }
+  }
 
   function openC(cls, fee) {
-    c = cls; f = fee; title.innerText = `${c} ($${f})`;
+    c = cls; f = fee; document.getElementById('title').innerText = `${c} ($${f})`;
     if (!db[c]?.length) { db[c] = Array.from({length:5}, (_,i) => ({id:`ID-00${i+1}`, name:'', parent:'', pay:{}})); save(); }
     show('p3'); draw();
   }
 
   function draw() {
-    const mon = m.value, qry = q.value.toLowerCase(); tb.innerHTML = '';
+    const mon = document.getElementById('m').value, qry = document.getElementById('q').value.toLowerCase();
+    const tb = document.getElementById('tb'); tb.innerHTML = '';
     let ps = 0, us = 0, pl = [], ul = [];
     db[c].forEach((s, i) => {
       const ok = s.pay[mon] === true;
@@ -106,13 +118,14 @@
         <td><button style="background:none;color:red;" onclick="db['${c}'].splice(${i},1);save();draw()">×</button></td>
       </tr>`;
     });
-    tp.innerText = '$'+ps; pids.innerText = pl.join(', ') || '-';
-    tu.innerText = '$'+us; uids.innerText = ul.join(', ') || '-';
-    ta.innerText = '$'+(ps+us); tc.innerText = db[c].length;
+    document.getElementById('tp').innerText = '$'+ps; document.getElementById('pids').innerText = pl.join(', ') || '-';
+    document.getElementById('tu').innerText = '$'+us; document.getElementById('uids').innerText = ul.join(', ') || '-';
+    document.getElementById('ta').innerText = '$'+(ps+us); document.getElementById('tc').innerText = db[c].length;
   }
 
   function drawArc() {
-    const sm = am.value, qry = aq.value.toLowerCase(); atb.innerHTML = '';
+    const sm = document.getElementById('am').value, qry = document.getElementById('aq').value.toLowerCase();
+    const atb = document.getElementById('atb'); atb.innerHTML = '';
     Object.keys(db).forEach(cls => db[cls].forEach(s => (sm=='ALL'?mons:[sm]).forEach(mon => {
       if (s.pay[mon] !== undefined && `${cls} ${s.id} ${s.name} ${s.parent}`.toLowerCase().includes(qry)) {
         const ok = s.pay[mon];
